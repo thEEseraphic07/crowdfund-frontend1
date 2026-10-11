@@ -1,3 +1,4 @@
+
 async function forgotPassword() {
   const email = document.getElementById("email").value.trim();
   const msg = document.getElementById("message");
@@ -8,15 +9,16 @@ async function forgotPassword() {
   }
 
   try {
-    await fetch(`${API_BASE}/auth/forgot-password`, {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
 
     const data = await res.json();
-    msg.textContent = data.message;
-  } catch {
+    msg.textContent = data.message || (res.ok ? "Request submitted." : "Failed to send reset email.");
+  } catch (err) {
+    console.error("Forgot password error:", err);
     msg.textContent = "Error sending reset email.";
   }
 }
