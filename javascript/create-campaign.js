@@ -50,3 +50,47 @@ campaignForm.addEventListener("submit", async (e) => {
     alert("Something went wrong");
   }
 });
+
+async function authFetch(endpoint, options = {}) {
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers: {
+        ...options.headers,
+        ...(localStorage.getItem("token") && {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        })
+      }
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      console.error(data.message || "Request failed");
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Request failed:", error);
+    return null;
+  }
+}
+
+
+async function loadCampaignCategories() {
+  console.log("Loading campaign categories...");
+  
+  const settings = await authFetch("/settings");
+  if (!settings) return;
+
+  const select = document.getElementById("campaignCategory");
+  if (!select) return;
+
+  select.innerHTML = `
+    <option value="">Select a category</option>
+    ${settings.campaignCategories.map(cat =>
+      `<option value="${cat}">${cat}</option>`
+    ).join("")}
+  `;
+}
+loadCampaignCategories();

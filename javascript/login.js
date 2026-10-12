@@ -87,3 +87,32 @@ setTimeout(() => {
   }, 2000);
 
 }, brand.length * 100 + 200);
+
+
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
+
+function togglePasswordVisibility() {
+  const isHidden = passwordInput.type === "password";
+
+  passwordInput.type = isHidden ? "text" : "password";
+
+  togglePassword.classList.toggle("fa-eye", !isHidden);
+  togglePassword.classList.toggle("fa-eye-slash", isHidden);
+
+  togglePassword.setAttribute(
+    "aria-label",
+    isHidden ? "Hide password" : "Show password"
+  );
+
+  togglePassword.setAttribute("aria-pressed", String(isHidden));
+}
+
+togglePassword.addEventListener("click", togglePasswordVisibility);
+
+togglePassword.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    togglePasswordVisibility();
+  }
+});

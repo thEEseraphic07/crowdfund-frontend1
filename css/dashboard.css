@@ -942,9 +942,9 @@ background:rgba(255,255,255,0.08);
 }
 
 #accountName {
-  margin: -5px 0 0;
+  margin: 8px;
   padding: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: white;
 }
 
@@ -966,6 +966,41 @@ background:rgba(255,255,255,0.08);
 
 #withdrawBtn:hover {
   opacity: 0.9;
+}
+
+#wallet .wallet-message {
+  display: none;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 14px 0 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  border: 1px solid transparent;
+}
+
+#wallet .wallet-message.show {
+  display: block;
+}
+
+#wallet .wallet-message.success {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+#wallet .wallet-message.error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+#wallet #withdrawBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .wallet-cards{

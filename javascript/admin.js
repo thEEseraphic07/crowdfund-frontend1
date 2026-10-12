@@ -1226,6 +1226,9 @@ async function saveSettings(){
         guestDonations:
         document.querySelector("#guestDonations").checked,
 
+        allowCategoryCreation:
+        document.querySelector("#allowCategoryCreation").checked,
+
         minWithdrawal:
         Number(document.querySelector("#minWithdrawal").value),
 
@@ -1755,36 +1758,41 @@ window.endCampaign = async function(id) {
 };
 
 window.approveWithdrawal = async function(id) {
+try {
+const result = await authFetch(
+`/withdraw/${id}/approve`,
+{
+method: "POST"
+}
+);
 
-  const result = await authFetch(
-    `/withdraw/${id}/approve`,
-    {
-      method: "POST"
-    }
-  );
+if (!result) {
+  showToast("Unable to approve withdrawal.", "error");
+  return;
+}
 
-  if (!result) {
-    showToast("Unable to approve withdrawal.", "error");
-    return;
-  }
-
-  if (result.message?.toLowerCase().includes("insufficient")) {
-    showToast(result.message, "error");
-    return;
-  }
-
-  if (result.message?.toLowerCase().includes("failed")) {
-    showToast(result.message, "error");
-    return;
-  }
-
+if (
+  result.error ||
+  result.success === false ||
+  !result.message?.toLowerCase().includes("transfer initiated")
+) {
   showToast(
-    result.message || "Withdrawal approved successfully.",
-    "success"
+    result.message || "Withdrawal approval failed.",
+    "error"
   );
+  return;
+}
 
-  await loadAdminData();
+showToast(result.message, "success");
+
+await loadAdminData();
+
+} catch (error) {
+console.error("Withdrawal approval error:", error);
+showToast("Withdrawal approval failed.", "error");
+}
 };
+
 
 window.rejectWithdrawal = async function(id) {
   await authFetch(`/withdraw/${id}/reject`, { method: "POST" });
@@ -1792,6 +1800,9 @@ window.rejectWithdrawal = async function(id) {
 };
 
 window.removeCategory = function(category) {
+  if(!document.getElementById("allowCategoryCreation").checked){
+    showToast("Category removal is disabled in settings.", "error");
+  }
 
   campaignCategories =
   campaignCategories.filter(
@@ -1899,7 +1910,7 @@ function renderCampaigns() {
 
     return `
       <div class="campaign-card">
-        <p class="owner">By: ${c.user?.name || "Unknown"}</p>
+        <p class="owner">By: ${c.owner?.name || "Unknown"}</p>
         <p class="donors">Donors: ${c.donorCount || 0}</p>
 
         <div class="card-top">
@@ -1973,53 +1984,53 @@ function renderDonations() {
   `).join("");
 }
 
-function renderCategories() {
 
-  const container =
-  document.getElementById("categoriesContainer");
+function renderCategories() {
+  const container = document.getElementById("categoriesContainer");
 
   if (!container) return;
 
-  container.innerHTML =
-  campaignCategories.map(category => `
+  const allowed = document.getElementById("allowCategoryCreation").checked;
 
+  container.innerHTML = campaignCategories.map(category => `
     <span class="tag">
-
       ${category}
-
-      <i
-        class="fa-solid fa-xmark"
-        onclick="removeCategory('${category}')"
-      ></i>
-
+      ${allowed ? `
+        <i
+          class="fa-solid fa-xmark"
+          onclick="removeCategory('${category}')"
+        ></i>
+      ` : ""}
     </span>
-
   `).join("");
-
 }
 
+document
+  .getElementById("allowCategoryCreation")
+  .addEventListener("change", renderCategories);
+
+
 function addCategory() {
+  const allowed = document.querySelector("#allowCategoryCreation").checked;
 
-  const input =
-  document.getElementById("newCategory");
+  if (!allowed) {
+    showToast("Category management is disabled.", "warning");
+    return;
+  }
 
+  const input = document.getElementById("newCategory");
   const value = input.value.trim();
 
   if (!value) return;
 
-  if (
-    campaignCategories.includes(value)
-  ) {
+  if (campaignCategories.includes(value)) {
     showToast("Category already exists", "warning");
     return;
   }
 
   campaignCategories.push(value);
-
   renderCategories();
-
   input.value = "";
-
 }
 
 function renderWithdrawals() {
@@ -2181,8 +2192,8 @@ function renderPendingActivity() {
       type: "campaign",
       id: c._id,
       title: c.title,
-      user: c.user?.name || "Unknown",
-      email: c.user?.email || "No email"
+      user: c.owner?.name || "Unknown",
+      email: c.owner?.email || "No email"
     }));
 
   const pendingWithdrawals = adminState.withdrawals
@@ -2586,10 +2597,10 @@ submitPlatformWithdraw.addEventListener("click", async ()=>{
         body:JSON.stringify({
 
             amount,
-            bankName:bank,
+            bankName: withdrawBank.options[withdrawBank.selectedIndex].text,
+            bankCode: bank,
             accountNumber,
             accountName
-
         })
 
     });

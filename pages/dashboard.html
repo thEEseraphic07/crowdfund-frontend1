@@ -300,10 +300,12 @@
 
 <p id="accountName"></p>
 
+
 <button id="withdrawBtn">Request Withdrawal</button>
 
-  <ul id="transactionsList" class="activity"></ul>
-  <div id="messageBox"></div>
+<div id="messageBox" class="wallet-message" role="status" aria-live="polite"></div>
+
+<ul id="transactionsList" class="activity"></ul>
 </section>
 
 <section id="analytics" class="section">
@@ -343,7 +345,7 @@
     <div class="profile-card">
 
       <div class="avatar-box">
-        <img id="avatar" class="avatar" src="/images/default-avatar.png" alt="Avatar">
+        <img id="avatar" class="avatar" src="../assets/default.png" alt="Avatar">
 
         <input type="file" id="fileInput" accept="image/*" hidden>
 

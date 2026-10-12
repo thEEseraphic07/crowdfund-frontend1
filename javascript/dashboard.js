@@ -1134,32 +1134,27 @@ let selectedBankCode = "";
 let verifiedAccountName = "";
 
 async function loadBanks() {
-  try {
-    const banks = await authFetch("/withdraw/banks");
+  if (!bankSelect) return;
 
-    if (!Array.isArray(banks)) {
-      throw new Error("Invalid bank list");
-    }
+  bankSelect.innerHTML = '<option value="">Loading banks...</option>';
 
-    bankSelect.innerHTML = `
-      <option value="">Select Bank</option>
-    `;
+  const banks = await authFetch("/withdraw/banks");
 
-    banks.forEach(bank => {
-      const option = document.createElement("option");
-
-      option.value = bank.code;
-      option.textContent = bank.name;
-
-      bankSelect.appendChild(option);
-    });
-
-  } catch (err) {
-    console.error("Failed to load banks:", err);
-    showToast("Unable to load banks");
+  if (!Array.isArray(banks)) {
+    bankSelect.innerHTML = '<option value="">Unable to load banks</option>';
+    return;
   }
-}
 
+  bankSelect.innerHTML = '<option value="">Select Bank</option>';
+
+  banks.forEach(bank => {
+    const option = document.createElement("option");
+    option.value = bank.code;
+    option.textContent = bank.name;
+    option.dataset.bankName = bank.name;
+    bankSelect.appendChild(option);
+  });
+}
 
 bankSelect?.addEventListener("change", () => {
 
@@ -1295,11 +1290,15 @@ withdrawBtn?.addEventListener("click", async () => {
     }
 
 
-    displayMessage(
-      data.message || "Withdrawal submitted successfully",
-      "success"
-    );
+    
+    function displayWithdrawalMessage(message, type) {
+     const box = document.getElementById("messageBox");
+     if (!box) return;
 
+     box.textContent = message;
+     box.className = `wallet-message show ${type}`;
+    }
+    
     document.getElementById("withdrawAmount").value = "";
     bankSelect.value = "";
     accountNumberInput.value = "";
@@ -1314,7 +1313,7 @@ withdrawBtn?.addEventListener("click", async () => {
 
     console.error("Withdrawal failed:", err);
 
-    displayMessage(
+    displayWithdrawalMessage(
       err.message || "Unable to process withdrawal",
       "error"
     );
@@ -1456,12 +1455,12 @@ document.getElementById("removeBtn")?.addEventListener("click", async () => {
 
   try { await loadCampaigns(); } catch(e){ console.error(e); }
   try { await loadWallet(); } catch(e){ console.error(e); }
+  try { await loadBanks(); } catch(e){ console.error(e); }
   try { await loadDonations(); } catch(e){ console.error(e); }
   try { await loadAnalytics(); } catch(e){ console.error(e); }
   try { await loadAllCampaigns(); } catch(e){ console.error(e); }
   try { await loadNotifications(); } catch(e){ console.error(e); }
   try { await loadRecentActivity(); } catch(e){ console.error(e); }
-  try { await loadBanks(); } catch(e){ console.error(e); }
 
 })();
 
