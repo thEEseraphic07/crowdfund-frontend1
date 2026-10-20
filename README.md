@@ -24,7 +24,7 @@ Tech Stack
 - MongoDB database through the backend
 - Paystack payment integration
 - Socket.IO
-- Resend for email-related functionality
+- Nodemailer for email-related functionality
 
  Architecture
 
